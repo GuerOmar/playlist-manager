@@ -4,6 +4,9 @@ import com.playlistmanager.adapter.in.rest.dto.PlaylistRequest;
 import com.playlistmanager.adapter.in.rest.dto.PlaylistResponse;
 import com.playlistmanager.adapter.in.rest.mapper.PlaylistRestMapper;
 import com.playlistmanager.domain.port.in.PlaylistUseCase;
+import com.playlistmanager.domain.port.in.ShufflePlaylistUseCase;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +20,7 @@ public class PlaylistController {
 
     private final PlaylistUseCase playlistUseCase;
     private final PlaylistRestMapper playlistRestMapper;
+    private final ShufflePlaylistUseCase shufflePlaylistUseCase;
 
     @GetMapping
     public List<PlaylistResponse> getAll() {
@@ -65,5 +69,15 @@ public class PlaylistController {
             @PathVariable UUID songId,
             @RequestParam int newPosition) {
         return playlistRestMapper.toResponse(playlistUseCase.reorderSong(playlistId, songId, newPosition));
+    }
+
+    @PostMapping("/shuffle/{id}")
+    public PlaylistResponse shuffle(
+            @PathVariable UUID id,
+            @Parameter(
+                    schema = @Schema(allowableValues = {"RANDOM", "SMART", "GENRE_BALANCED"})
+            )
+            @RequestParam String strategy) {
+        return playlistRestMapper.toResponse(shufflePlaylistUseCase.shuffle(id, strategy));
     }
 }

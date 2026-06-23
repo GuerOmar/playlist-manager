@@ -6,6 +6,7 @@ import com.playlistmanager.domain.model.Song;
 import com.playlistmanager.domain.port.in.PlaylistUseCase;
 import com.playlistmanager.domain.port.out.PlaylistPersistencePort;
 import com.playlistmanager.domain.port.out.SongPersistencePort;
+import com.playlistmanager.util.PlaylistEntryUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,7 +92,7 @@ public class PlaylistService implements PlaylistUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Song not found in playlist"));
 
         playlist.getEntries().remove(entry);
-        reindex(playlist);
+        PlaylistEntryUtils.reindex(playlist.getEntries());
         return playlistPersistencePort.save(playlist);
     }
 
@@ -113,14 +114,7 @@ public class PlaylistService implements PlaylistUseCase {
         int maxPosition = Math.min(newPosition, playlist.getEntries().size());
         playlist.getEntries().remove(entry);
         playlist.getEntries().add(maxPosition, entry);
-        reindex(playlist);
+        PlaylistEntryUtils.reindex(playlist.getEntries());
         return playlistPersistencePort.save(playlist);
-    }
-
-    private void reindex(Playlist playlist) {
-        List<PlaylistEntry> entries = playlist.getEntries();
-        for (int i = 0; i < entries.size(); i++) {
-            entries.get(i).setPosition(i);
-        }
     }
 }
