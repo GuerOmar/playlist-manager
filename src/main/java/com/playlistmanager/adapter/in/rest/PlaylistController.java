@@ -3,11 +3,15 @@ package com.playlistmanager.adapter.in.rest;
 import com.playlistmanager.adapter.in.rest.dto.PlaylistRequest;
 import com.playlistmanager.adapter.in.rest.dto.PlaylistResponse;
 import com.playlistmanager.adapter.in.rest.mapper.PlaylistRestMapper;
+import com.playlistmanager.domain.model.ExportFormatType;
 import com.playlistmanager.domain.port.in.PlaylistUseCase;
 import com.playlistmanager.domain.port.in.ShufflePlaylistUseCase;
+import com.playlistmanager.domain.service.ExportService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +25,7 @@ public class PlaylistController {
     private final PlaylistUseCase playlistUseCase;
     private final PlaylistRestMapper playlistRestMapper;
     private final ShufflePlaylistUseCase shufflePlaylistUseCase;
+    private final ExportService exportService;
 
     @GetMapping
     public List<PlaylistResponse> getAll() {
@@ -79,5 +84,31 @@ public class PlaylistController {
             )
             @RequestParam String strategy) {
         return playlistRestMapper.toResponse(shufflePlaylistUseCase.shuffle(id, strategy));
+    }
+
+    @GetMapping("/export/{playlistId}")
+    public ResponseEntity<String> export(
+            @PathVariable UUID playlistId,
+            @Parameter(description = "Export format", schema = @Schema(implementation = ExportFormatType.class))
+            @RequestParam String format) {
+
+        String result = exportService.export(playlistId, format);
+
+        String contentType = switch (format) {
+            case "JSON" -> "application/json";
+            case "M3U" -> "audio/x-mpegurl";
+            default -> throw new IllegalArgumentException("Unsupported format: " + format);
+        };
+
+        String extension = switch (format) {
+            case "JSON" -> "json";
+            case "M3U" -> "m3u";
+            default -> throw new IllegalArgumentException("Unsupported format: " + format);
+        };
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + playlistId + "." + extension + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, contentType)
+                .body(result);
     }
 }
