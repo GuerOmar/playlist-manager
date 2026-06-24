@@ -4,6 +4,7 @@ import com.playlistmanager.adapter.in.rest.dto.PlaylistRequest;
 import com.playlistmanager.adapter.in.rest.dto.PlaylistResponse;
 import com.playlistmanager.adapter.in.rest.mapper.PlaylistRestMapper;
 import com.playlistmanager.domain.model.ExportFormatType;
+import com.playlistmanager.domain.model.ShuffleStrategyType;
 import com.playlistmanager.domain.port.in.PlaylistUseCase;
 import com.playlistmanager.domain.port.in.ShufflePlaylistUseCase;
 import com.playlistmanager.domain.service.ExportService;
@@ -80,7 +81,7 @@ public class PlaylistController {
     public PlaylistResponse shuffle(
             @PathVariable UUID id,
             @Parameter(
-                    schema = @Schema(allowableValues = {"RANDOM", "SMART", "GENRE_BALANCED"})
+                    schema = @Schema(implementation = ShuffleStrategyType.class)
             )
             @RequestParam String strategy) {
         return playlistRestMapper.toResponse(shufflePlaylistUseCase.shuffle(id, strategy));
