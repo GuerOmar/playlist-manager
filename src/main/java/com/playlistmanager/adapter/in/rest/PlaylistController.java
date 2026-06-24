@@ -77,7 +77,7 @@ public class PlaylistController {
         return playlistRestMapper.toResponse(playlistUseCase.reorderSong(playlistId, songId, newPosition));
     }
 
-    @PostMapping("/shuffle/{id}")
+    @PatchMapping("/shuffle/{id}")
     public PlaylistResponse shuffle(
             @PathVariable UUID id,
             @Parameter(
