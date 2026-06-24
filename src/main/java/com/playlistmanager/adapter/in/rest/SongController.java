@@ -3,6 +3,7 @@ package com.playlistmanager.adapter.in.rest;
 import com.playlistmanager.adapter.in.rest.dto.SongRequest;
 import com.playlistmanager.adapter.in.rest.dto.SongResponse;
 import com.playlistmanager.adapter.in.rest.mapper.SongRestMapper;
+import com.playlistmanager.domain.port.in.RecommendationUseCase;
 import com.playlistmanager.domain.port.in.SongUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ public class SongController {
 
     private final SongUseCase songUseCase;
     private final SongRestMapper songRestMapper;
+    private final RecommendationUseCase recommendationUseCase;
 
     @GetMapping
     public List<SongResponse> getAll() {
@@ -58,5 +60,15 @@ public class SongController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable UUID id) {
         songUseCase.delete(id);
+    }
+
+    @GetMapping("/recommendations/{playlistId}")
+    public List<SongResponse> recommend(
+            @PathVariable UUID playlistId,
+            @RequestParam(defaultValue = "10") int limit) {
+        return recommendationUseCase.recommend(playlistId, limit)
+                .stream()
+                .map(songRestMapper::toResponse)
+                .toList();
     }
 }

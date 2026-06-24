@@ -5,10 +5,12 @@ import com.playlistmanager.adapter.out.persistence.repository.SongRepository;
 import com.playlistmanager.domain.model.Song;
 import com.playlistmanager.domain.port.out.SongPersistencePort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -43,5 +45,13 @@ public class SongAdapter implements SongPersistencePort {
     @Override
     public boolean existsById(UUID id) {
         return songRepository.existsById(id);
+    }
+
+    @Override
+    public List<Song> findByArtistNotInIds(String artist, Set<UUID> excludedIds, int limit) {
+        return songRepository.findByArtistNotInIds(artist, excludedIds, Limit.of(limit))
+                .stream()
+                .map(songMapper::toDomain)
+                .toList();
     }
 }
